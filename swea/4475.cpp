@@ -50,6 +50,10 @@ void update(int node, int alo, int blo, int ahi, int bhi,
 	update(node*4+1, alo, (blo+bhi)/2+1, (alo+ahi)/2, bhi,a,b,p);
 	update(node*4+2, (alo+ahi)/2+1, blo, ahi, (blo+bhi)/2,a,b,p);
 	update(node*4+3, (alo+ahi)/2+1, (blo+bhi)/2+1, ahi, bhi,a,b,p);
+	tree[node] = min(tree[node], tree[node*4]);
+	tree[node] = min(tree[node], tree[node*4+1]);
+	tree[node] = min(tree[node], tree[node*4+2]);
+	tree[node] = min(tree[node], tree[node*4+3]);
 }
 
 int query(int node, int alo, int blo, int ahi, int bhi,
@@ -66,7 +70,7 @@ int query(int node, int alo, int blo, int ahi, int bhi,
 	if( alo == ahi && blo == bhi )
 		return tree[node];
 	if( xlo <= alo && ahi <= xhi && 
-		ylo <= blo && bhi <= yhi && ((ahi-alo+1)*(bhi-blo+1))%4 == 0 ) {
+		ylo <= blo && bhi <= yhi && ((ahi-alo+1)*(bhi-blo+1))%4 == 0) {
 		return tree[node];
 	}
 	
