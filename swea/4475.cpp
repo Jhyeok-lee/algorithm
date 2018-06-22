@@ -9,83 +9,109 @@ using namespace std;
 
 int N, M, K;
 int a[1001][1001];
-int tree[10000000];
+int tree[4000][4000];
 
-int init(int node, int alo, int blo, int ahi, int bhi)
+int initB(int nodeA, int alo, int ahi, int nodeB, int blo, int bhi)
+{
+	if( blo > bhi )
+		return INF;
+	if( blo == bhi )
+		return tree[nodeA][nodeB] = a[alo][blo];
+	int mid = (blo+bhi)/2;
+	int left = initB(nodeA, alo, ahi, nodeB*2, blo, mid);
+	int right = initB(nodeA, alo, ahi, nodeB*2+1, mid+1, bhi);
+	return tree[nodeA][nodeB] = min(left, right);
+}
+
+int initA(int nodeA, int alo, int ahi, int nodeB, int blo, int bhi)
 {
 	if( alo > ahi )
 		return INF;
-	if( blo > bhi )
-		return INF;
-	if( alo == ahi && blo == bhi )
-		return tree[node] = a[alo][blo];
+	if( alo == ahi )
+		return tree[nodeA][nodeB] = initB(nodeA, alo, ahi, nodeB, blo, bhi);
 
-	int one = init(node*4, alo, blo, (alo+ahi)/2, (blo+bhi)/2);
-	int two = init(node*4+1, alo, (blo+bhi)/2+1, (alo+ahi)/2, bhi);
-	int three = init(node*4+2, (alo+ahi)/2+1, blo, ahi, (blo+bhi)/2);
-	int four =  init(node*4+3, (alo+ahi)/2+1, (blo+bhi)/2+1, ahi, bhi);
-	one = min(one, two);
-	one = min(one, three);
-	one = min(one, four);
-	return tree[node] = one;
+	int mid = (alo+ahi)/2;
+	int left = initA(nodeA*2, alo, mid, nodeB, blo, bhi);
+	int right = initA(nodeA*2+1, mid+1, ahi, nodeB, blo, bhi);
+	return tree[nodeA][nodeB] = min(left, right);
 }
 
-void update(int node, int alo, int blo, int ahi, int bhi,
+void updateB(int nodeA, int alo, int ahi,
+			int nodeB, int blo, int bhi,
+			int a, int b, int p)
+{
+	if( blo > bhi )
+		return;
+	if( b < blo || bhi < b )
+		return;
+	if( blo == bhi ) {
+		tree[nodeA][nodeB] += p;
+		return;
+	}
+	int mid = (blo+bhi)/2;
+	updateB(nodeA, alo, ahi, nodeB*2, blo, mid, a, b, p);
+	updateB(nodeA, alo, ahi, nodeB*2+1, mid+1, bhi, a, b, p);
+	tree[nodeA][nodeB] = min(tree[nodeA][nodeB*2], tree[nodeA][nodeB*2+1]);
+}
+
+void updateA(int nodeA, int alo, int ahi,
+			int nodeB, int blo, int bhi,
 			int a, int b, int p)
 {
 	if( alo > ahi )
 		return;
-	if( blo > bhi )
-		return;
 	if( a < alo || ahi < a )
 		return;
-	if( b < blo || bhi < b)
-		return;
-	if( alo == ahi && blo == bhi ) {
-		tree[node] += p;
+	if( alo == ahi ) {
+		updateB(nodeA, alo, ahi, nodeB, blo, bhi, a, b, p);
 		return;
 	}
-
-	update(node*4, alo, blo, (alo+ahi)/2, (blo+bhi)/2,a,b,p);
-	update(node*4+1, alo, (blo+bhi)/2+1, (alo+ahi)/2, bhi,a,b,p);
-	update(node*4+2, (alo+ahi)/2+1, blo, ahi, (blo+bhi)/2,a,b,p);
-	update(node*4+3, (alo+ahi)/2+1, (blo+bhi)/2+1, ahi, bhi,a,b,p);
-	tree[node] = min(tree[node], tree[node*4]);
-	tree[node] = min(tree[node], tree[node*4+1]);
-	tree[node] = min(tree[node], tree[node*4+2]);
-	tree[node] = min(tree[node], tree[node*4+3]);
+	int mid = (alo+ahi)/2;
+	updateA(nodeA*2, alo, mid, nodeB, blo, bhi, a, b, p);
+	updateA(nodeA*2, mid+1, ahi, nodeB, blo, bhi, a, b, p);
+	tree[nodeA][nodeB] = min(tree[nodeA*2][nodeB], tree[nodeA*2+1][nodeB]);
 }
 
-int query(int node, int alo, int blo, int ahi, int bhi,
-				int xlo, int ylo, int xhi, int yhi)
+int queryB(int nodeA, int alo, int ahi,
+			int nodeB, int blo, int bhi,
+				int xlo, int xhi, int ylo, int yhi)
+{
+	if( blo > bhi )
+		return INF;
+	if( yhi < blo || bhi < ylo )
+		return INF;
+	if( ylo <= blo && bhi <= yhi ) {
+		printf("fuck %d %d %d %d : %d\n", alo, ahi, blo, bhi, tree[nodeA][nodeB]);
+		printf("fuck %d %d\n", nodeA, nodeB);
+		return tree[nodeA][nodeB];
+	}
+	
+	int mid = (blo+bhi)/2;
+	int left = queryB(nodeA, alo, ahi, nodeB*2, blo, mid,
+			xlo, xhi, ylo, yhi);
+	int right = queryB(nodeA, alo, ahi, nodeB*2+1, mid+1, bhi,
+			xlo, xhi, ylo, yhi);
+	return min(left, right);
+}
+
+int queryA(int nodeA, int alo, int ahi,
+			int nodeB, int blo, int bhi,
+				int xlo, int xhi, int ylo, int yhi)
 {
 	if( alo > ahi )
 		return INF;
-	if( blo > bhi )
-		return INF;
 	if( xhi < alo || ahi < xlo )
 		return INF;
-	if( yhi < blo || bhi < ylo)
-		return INF;
-	if( alo == ahi && blo == bhi )
-		return tree[node];
-	if( xlo <= alo && ahi <= xhi && 
-		ylo <= blo && bhi <= yhi && ((ahi-alo+1)*(bhi-blo+1))%4 == 0) {
-		return tree[node];
-	}
+	if( xlo <= alo && ahi <= xhi )
+		return queryB(nodeA, alo, ahi, nodeB, blo, bhi,
+			xlo, xhi, ylo, yhi);
 	
-	int one = query(node*4, alo, blo, (alo+ahi)/2, (blo+bhi)/2,
-					xlo, ylo, xhi, yhi);
-	int two = query(node*4+1, alo, (blo+bhi)/2+1, (alo+ahi)/2, bhi,
-					xlo, ylo, xhi, yhi);
-	int three = query(node*4+2, (alo+ahi)/2+1, blo, ahi, (blo+bhi)/2,
-					xlo, ylo, xhi, yhi);
-	int four = query(node*4+3, (alo+ahi)/2+1, (blo+bhi)/2+1, ahi, bhi,
-					xlo, ylo, xhi, yhi);
-	one = min(one, two);
-	one = min(one, three);
-	one = min(one, four);
-	return one;
+	int mid = (alo+ahi)/2;
+	int left = queryA(nodeA*2, alo, mid, nodeB, blo, bhi,
+			xlo, xhi, ylo, yhi);
+	int right = queryA(nodeA*2+1, mid+1, ahi, nodeB, blo, bhi,
+			xlo, xhi, ylo, yhi);
+	return min(left, right);
 }
 
 int main(void)
@@ -101,19 +127,20 @@ int main(void)
 			for(int j=0; j<N; j++)
 				scanf("%d", &a[i][j]);
 		}
-		init(1,0,0,N-1,N-1);
+		initA(1,0,N-1,1,0,N-1);
 		int ret = 0;
 		for(int i=0; i<M; i++) {
 			for(int j=0; j<K; j++) {
 				int x,y,p;
 				scanf("%d %d %d",&x,&y,&p);
 				x--, y--;
-				update(1,0,0,N-1,N-1,x,y,p);
+				updateA(1,0,N-1,1,0,N-1,x,y,p);
 			}
 			int r1,c1,r2,c2;
 			scanf("%d %d %d %d", &r1, &c1, &r2, &c2);
 			r1--, c1--, r2--, c2--;
-			ret += query(1,0,0,N-1,N-1,r1,c1,r2,c2);
+			ret += queryA(1,0,N-1,1,0,N-1,r1,r2,c1,c2);
+			printf("%d\n", ret);
 		}
 		printf("#%d %d\n", test+1, ret);
 	}

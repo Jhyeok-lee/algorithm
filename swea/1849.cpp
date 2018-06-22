@@ -16,6 +16,7 @@ int findRoot(int u)
 	return tree[u] = findRoot(tree[u]);
 }
 
+// u + w = v
 void merge(int u, int v, int w)
 {
 	int uw = weight[u];
@@ -25,16 +26,16 @@ void merge(int u, int v, int w)
 	if( u == v )
 		return;
 
-	if( depth[u] < depth[v] ) {
+	if( depth[u] > depth[v] ) {
 		swap(u,v);
 		swap(uw, vw);
 		w *= -1;
 	}
 
-	tree[v] = u;
-	weight[v] = weight[u] + uw - vw + w;
+	tree[u] = v;
+	weight[u] = weight[v] - uw + vw - w;
 	if( depth[u] == depth[v] )
-		depth[u]++;
+		depth[v]++;
 }
 
 int main(void)

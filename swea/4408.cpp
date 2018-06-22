@@ -2,16 +2,6 @@
 
 using namespace std;
 
-class M {
-public:
-	int u,v;
-	M(int _u, int _v)
-	{
-		u = _u;
-		v = _v;
-	}
-};
-
 int main(void)
 {
 	int Case;
@@ -19,29 +9,23 @@ int main(void)
 	for(int test=0; test<Case; test++) {
 		int N;
 		scanf("%d", &N);
-		vector<M> m;
+		int t[401] = {0,};
 		for(int i=0; i<N; i++) {
-			int u, v;
-			scanf("%d %d", &u, &v);
-			if( u > v )
-				swap(u,v);
-			m.push_back(M(u,v));
+			int a,b;
+			scanf("%d %d", &a, &b);
+			if( a > b )
+				swap(a,b);
+			if( a%2 == 0 )
+				a--;
+			if( b%2 == 1 )
+				b++;
+			for(int j=a; j<=b; j++)
+				t[j]++;
 		}
+
 		int ret = 0;
-		while( m.size() ) {
-			int u = m[0].u;
-			int v = m[0].v;
-			vector<M>::iterator it;
-			for(it=m.begin(); it!=m.end();) {
-				if( (u <= it->u && it->u <= v) ||
-					(u <= it->v && it->v <= v) )
-					it++;
-				else
-					m.erase(it);
-			}
-			m.erase(m.begin());
-			ret++;
-		}
+		for(int i=1; i<401; i++)
+			ret = max(ret, t[i]);
 		printf("#%d %d\n", test+1, ret);
 	}
 	return 0;

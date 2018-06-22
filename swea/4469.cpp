@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define MOD 1000000007
+const long long MOD = 1000000007;
 
 int N;
 long long A[100002];
@@ -28,7 +28,7 @@ int main(void)
 		dp[0][0] = A[0];
 		dp[0][1] = 0;
 		dp[0][2] = B[0];
-		dp[0][3] = B[1];
+		dp[0][3] = ((A[0]+B[0])%MOD * (B[1]*(B[1]-1)) % MOD) % MOD;
 		for(int i=1; i<N; i++) {
 			long long sum = 0;
 			sum = (sum + dp[i-1][0] * A[i] % MOD) % MOD;
@@ -36,7 +36,7 @@ int main(void)
 			sum = (sum + dp[i-1][2] * A[i] % MOD) % MOD;
 			if( i-3 >= 0)
 				sum = (sum + dp[i-3][3] * A[i] % MOD) % MOD;
-			dp[i][0] = sum % MOD;
+			dp[i][0] = sum;
 
 			sum = dp[i-1][0] * B[i-1] % MOD;
 			sum = (sum + dp[i-1][1] * B[i-1] % MOD) % MOD;
@@ -51,13 +51,12 @@ int main(void)
 				sum = (sum + dp[i-3][3] * B[i] % MOD) % MOD;
 			dp[i][2] = sum;
 
-			const long long a = 1e20;
-			long long jump = B[i+1]*(B[i+1]-1) % MOD;
-			sum = dp[i-1][0] * jump % MOD;
-			sum = (sum + dp[i-1][1]*jump % MOD) % MOD;
-			sum = (sum + dp[i-1][2]*jump % MOD) % MOD;
+			long long jump = (B[i+1] * (B[i+1]-1)) % MOD;
+			sum = (dp[i-1][0] * (jump * (A[i] + B[i-1] + B[i])%MOD) % MOD)%MOD;
+			sum = (sum + (dp[i-1][1]*(jump * (A[i] + B[i-1] + B[i])%MOD)%MOD)% MOD) % MOD;
+			sum = (sum + (dp[i-1][2]*(jump * (A[i] + B[i])%MOD)%MOD)% MOD) % MOD;
 			if( i-3 >= 0)
-				sum = (sum + dp[i-3][3]*jump % MOD) % MOD;
+				sum = (sum + (dp[i-3][3]*(jump * (A[i] + B[i-1] + B[i])%MOD)%MOD)%MOD)%MOD;
 			dp[i][3] = sum;
 		}
 		
